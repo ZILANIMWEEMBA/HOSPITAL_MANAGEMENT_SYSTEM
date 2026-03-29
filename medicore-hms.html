@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MediCore HMS — Hospital Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0a1628;--navy-mid:#112040;--navy-light:#1a3260;--navy-border:rgba(255,255,255,0.08);
+  --teal:#00d4b8;--teal-dim:rgba(0,212,184,0.12);--teal-glow:rgba(0,212,184,0.25);
+  --ivory:#f8f6f0;--white:#fff;
+  --success:#22c55e;--success-bg:rgba(34,197,94,0.1);
+  --warning:#f59e0b;--warning-bg:rgba(245,158,11,0.1);
+  --danger:#ef4444;--danger-bg:rgba(239,68,68,0.1);
+  --info:#3b82f6;--info-bg:rgba(59,130,246,0.1);
+  --purple:#a855f7;--purple-bg:rgba(168,85,247,0.1);
+  --text-primary:#0f172a;--text-secondary:#475569;--text-muted:#94a3b8;
+  --text-on-dark:#e2e8f0;--text-on-dark-muted:#64748b;
+  --surface:#fff;--surface-2:#f8fafc;--surface-3:#f1f5f9;
+  --border:#e2e8f0;--border-strong:#cbd5e1;
+  --sidebar-w:230px;
+  --font-display:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.08),0 2px 6px rgba(0,0,0,0.05);
+  --shadow-lg:0 20px 60px rgba(0,0,0,0.12),0 8px 20px rgba(0,0,0,0.08);
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:20px;--r-full:9999px;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font-body);background:var(--surface-2);color:var(--text-primary);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+#app{display:flex;height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:var(--r-full)}
+h1,h2,h3,h4{font-family:var(--font-display);line-height:1.2}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.fade-up{animation:fadeUp 0.3s ease both}
+
+/* ── SIDEBAR ── */
+#sidebar{width:var(--sidebar-w);background:var(--navy);display:flex;flex-direction:column;flex-shrink:0;height:100vh;position:relative;z-index:10}
+.sidebar-logo{padding:26px 22px 20px;border-bottom:1px solid var(--navy-border)}
+.sidebar-logo h1{font-family:var(--font-display);font-size:21px;font-weight:800;color:#fff;letter-spacing:0.3px;line-height:1.1}
+.sidebar-logo h1 span{color:var(--teal)}
+.sidebar-logo p{font-size:10px;color:rgba(100,116,139,0.7);letter-spacing:2px;text-transform:uppercase;margin-top:3px;font-weight:500}
+.nav-section{padding:18px 22px 5px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(100,116,139,0.5)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 22px;font-size:13.5px;font-weight:400;color:var(--text-on-dark-muted);cursor:pointer;transition:all 0.15s;position:relative;user-select:none;border:none;background:none;width:100%;text-align:left;font-family:var(--font-body)}
+.nav-item:hover{background:rgba(255,255,255,0.04);color:var(--text-on-dark)}
+.nav-item.active{background:rgba(0,212,184,0.1);color:var(--teal);font-weight:600}
+.nav-item.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--teal);border-radius:0 3px 3px 0}
+.nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.sidebar-bottom{margin-top:auto;padding:16px 22px;border-top:1px solid var(--navy-border);display:flex;align-items:center;gap:10px}
+.sidebar-accent{position:absolute;top:0;right:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent,var(--teal-dim),transparent)}
+
+/* ── MAIN ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 26px;height:62px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:14px}
+#topbar .page-title{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--text-primary);letter-spacing:-0.2px}
+#topbar .page-sub{font-size:11.5px;color:var(--text-muted);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+#content{flex:1;overflow-y:auto;overflow-x:hidden}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r-md);font-family:var(--font-body);font-size:13.5px;font-weight:500;cursor:pointer;border:none;transition:all 0.15s;white-space:nowrap}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:var(--teal);color:var(--navy);font-weight:600}
+.btn-primary:hover{background:#00bfa8;box-shadow:0 0 0 4px var(--teal-glow)}
+.btn-secondary{background:var(--surface);color:var(--text-primary);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--surface-3)}
+.btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface-3);color:var(--text-primary)}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid rgba(239,68,68,0.2)}
+.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-sm{padding:6px 12px;font-size:12.5px;border-radius:var(--r-sm)}
+.btn-icon{padding:8px;border-radius:var(--r-md)}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--r-full);font-size:11.5px;font-weight:600;letter-spacing:0.2px}
+.badge-success{background:var(--success-bg);color:#15803d}
+.badge-warning{background:var(--warning-bg);color:#b45309}
+.badge-danger{background:var(--danger-bg);color:#b91c1c}
+.badge-info{background:var(--info-bg);color:#1d4ed8}
+.badge-purple{background:var(--purple-bg);color:#7e22ce}
+.badge-gray{background:var(--surface-3);color:var(--text-secondary)}
+.badge-teal{background:var(--teal-dim);color:#0f766e}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);overflow:hidden}
+.card-header{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary)}
+.card-subtitle{font-size:12px;color:var(--text-muted);margin-top:2px}
+.card-body{padding:22px}
+
+/* ── TABLES ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{padding:10px 16px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:12px 16px;font-size:13.5px;color:var(--text-primary);border-bottom:1px solid #f1f5f9;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr{transition:background 0.12s;cursor:default}
+tbody tr:hover td{background:#fafbff}
+
+/* ── FORMS ── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-row.full{grid-template-columns:1fr}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted)}
+.form-input,.form-select,.form-textarea{width:100%;padding:9px 13px;border:1.5px solid var(--border);border-radius:var(--r-md);font-family:var(--font-body);font-size:13.5px;color:var(--text-primary);background:var(--surface);transition:border-color 0.15s,box-shadow 0.15s;outline:none;appearance:none}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-dim)}
+.form-input::placeholder{color:var(--text-muted)}
+.form-textarea{resize:vertical;min-height:80px;line-height:1.5}
+.form-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px;cursor:pointer}
+
+/* ── AVATAR ── */
+.avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:var(--font-display);flex-shrink:0;letter-spacing:0.5px}
+
+/* ── MODAL ── */
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,22,40,0.7);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;animation:fadeUp 0.2s ease both}
+.modal{background:var(--surface);border-radius:var(--r-xl);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:fadeUp 0.25s ease both}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h2{font-family:var(--font-display);font-size:17px;font-weight:700}
+.modal-close{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:16px;transition:all 0.15s;font-family:var(--font-body)}
+.modal-close:hover{background:var(--danger-bg);color:var(--danger);border-color:transparent}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+
+/* ── TOAST ── */
+.toast-container{position:fixed;bottom:22px;right:22px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 17px;background:var(--navy);color:var(--text-on-dark);border-radius:var(--r-lg);font-size:13.5px;font-weight:500;box-shadow:var(--shadow-lg);border:1px solid var(--navy-border);animation:toastIn 0.3s ease both;min-width:250px}
+
+/* ── SEARCH ── */
+.search-wrap{position:relative;display:flex;align-items:center}
+.search-icon{position:absolute;left:11px;color:var(--text-muted);font-size:13px;pointer-events:none}
+.search-input{padding:8px 13px 8px 33px;border:1.5px solid var(--border);border-radius:var(--r-md);font-family:var(--font-body);font-size:13.5px;background:var(--surface);color:var(--text-primary);outline:none;transition:border-color 0.15s,box-shadow 0.15s;width:230px}
+.search-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-dim)}
+.search-input::placeholder{color:var(--text-muted)}
+
+/* ── STAT CARDS ── */
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.stat-icon{width:40px;height:40px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:13px}
+.stat-value{font-family:var(--font-display);font-size:27px;font-weight:800;color:var(--text-primary);line-height:1;letter-spacing:-0.5px}
+.stat-label{font-size:12px;color:var(--text-muted);margin-top:4px}
+.stat-delta{font-size:12px;font-weight:600;margin-top:9px;display:flex;align-items:center;gap:4px}
+.delta-up{color:var(--success)}.delta-down{color:var(--danger)}
+
+/* ── PROGRESS ── */
+.progress{background:var(--surface-3);border-radius:var(--r-full);height:6px;overflow:hidden}
+.progress-fill{height:100%;border-radius:var(--r-full);transition:width 0.6s ease}
+
+/* ── PAGES CONTAINER ── */
+.page{display:none;padding:22px 26px;animation:fadeUp 0.3s ease both}
+.page.active{display:block}
+
+/* ── UTILITY ── */
+.flex{display:flex}.flex-col{display:flex;flex-direction:column}
+.items-center{align-items:center}.justify-between{justify-content:space-between}
+.gap-2{gap:8px}.gap-3{gap:12px}.gap-4{gap:16px}
+.mt-4{margin-top:16px}.mt-6{margin-top:22px}
+.text-muted{color:var(--text-muted);font-size:12.5px}
+.font-display{font-family:var(--font-display)}
+.hidden{display:none}
+.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
+.empty-state{padding:56px 20px;text-align:center;color:var(--text-muted)}
+.empty-icon{font-size:38px;margin-bottom:10px}
+.empty-title{font-family:var(--font-display);font-size:15px;color:var(--text-secondary);margin-bottom:5px}
+.empty-desc{font-size:13px}
+
+/* ── WARD BEDS ── */
+.bed-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:10px}
+.bed{aspect-ratio:1;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;cursor:pointer;transition:transform 0.1s}
+.bed:hover{transform:scale(1.15)}
+.bed-O{background:#fee2e2;color:#991b1b}
+.bed-A{background:#d1fae5;color:#065f46}
+.bed-R{background:#fef3c7;color:#92400e}
+
+/* ── RECORDS LAYOUT ── */
+.records-layout{display:grid;grid-template-columns:270px 1fr;gap:16px;height:calc(100vh - 128px)}
+.patient-list-item{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background 0.12s}
+.patient-list-item:hover{background:var(--surface-2)}
+.patient-list-item.active{background:var(--teal-dim)}
+
+/* ── CHART CONTAINER ── */
+.chart-box{position:relative;height:175px}
+
+/* ── BILLING DETAIL ── */
+.inv-row{display:flex;justify-content:space-between;align-items:center;padding:11px 20px;border-bottom:1px solid #f1f5f9;font-size:13.5px}
+.inv-total{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:var(--surface-2);border-top:2px solid var(--border)}
+
+/* ── APPOINTMENT TIMELINE DOT ── */
+.appt-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+
+/* ── DOCTOR CARD ── */
+.doctor-card{cursor:pointer;transition:box-shadow 0.15s}
+.doctor-card:hover{box-shadow:var(--shadow-md)}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <h1>Medi<span>Core</span></h1>
+      <p>Hospital Management</p>
+    </div>
+    <nav id="nav" style="flex:1;overflow-y:auto;padding-bottom:10px">
+      <div class="nav-item active" data-page="dashboard"><span class="nav-icon">⬡</span> Dashboard</div>
+      <div class="nav-section">Clinical</div>
+      <div class="nav-item" data-page="patients"><span class="nav-icon">👤</span> Patients</div>
+      <div class="nav-item" data-page="appointments"><span class="nav-icon">📅</span> Appointments</div>
+      <div class="nav-item" data-page="doctors"><span class="nav-icon">🩺</span> Doctors & Staff</div>
+      <div class="nav-item" data-page="wards"><span class="nav-icon">🏨</span> Wards & Beds</div>
+      <div class="nav-item" data-page="records"><span class="nav-icon">📋</span> Medical Records</div>
+      <div class="nav-section">Finance</div>
+      <div class="nav-item" data-page="billing"><span class="nav-icon">🧾</span> Billing</div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="avatar" style="width:34px;height:34px;background:var(--teal);color:var(--navy);font-size:12px;flex-shrink:0">SA</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#fff">Super Admin</div>
+        <div style="font-size:11px;color:var(--text-on-dark-muted)">admin@medicore.zw</div>
+      </div>
+    </div>
+    <div class="sidebar-accent"></div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <div id="main">
+
+    <!-- TOPBAR -->
+    <header id="topbar">
+      <div>
+        <div class="page-title" id="topbar-title">Dashboard Overview</div>
+        <div class="page-sub" id="topbar-sub">Welcome back — Saturday 28 March 2026</div>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" id="global-search" placeholder="Search patients, doctors…" oninput="handleSearch(this.value)"/>
+        </div>
+        <button class="btn btn-ghost btn-icon" style="position:relative" title="Notifications">
+          🔔
+          <span style="position:absolute;top:5px;right:5px;width:6px;height:6px;background:var(--teal);border-radius:50%;border:1.5px solid var(--surface)"></span>
+        </button>
+        <button class="btn btn-primary" id="action-btn" onclick="openActionModal()">+ New Patient</button>
+      </div>
+    </header>
+
+    <!-- PAGES -->
+    <div id="content">
+
+      <!-- ═══ DASHBOARD ═══ -->
+      <div class="page active" id="page-dashboard">
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          <div class="stat-card fade-up">
+            <div class="stat-icon" style="background:var(--info-bg)">👥</div>
+            <div class="stat-value">248</div><div class="stat-label">Total Patients</div>
+            <div class="stat-delta delta-up">↑ 12 this week</div>
+          </div>
+          <div class="stat-card fade-up" style="animation-delay:0.05s">
+            <div class="stat-icon" style="background:var(--success-bg)">📅</div>
+            <div class="stat-value">34</div><div class="stat-label">Today's Appointments</div>
+            <div class="stat-delta delta-up">↑ 5 vs yesterday</div>
+          </div>
+          <div class="stat-card fade-up" style="animation-delay:0.1s">
+            <div class="stat-icon" style="background:var(--warning-bg)">🛏️</div>
+            <div class="stat-value">61%</div><div class="stat-label">Bed Occupancy</div>
+            <div class="stat-delta delta-down">↓ 4% vs last week</div>
+          </div>
+          <div class="stat-card fade-up" style="animation-delay:0.15s">
+            <div class="stat-icon" style="background:var(--teal-dim)">💰</div>
+            <div class="stat-value">K18.4k</div><div class="stat-label">Revenue This Month</div>
+            <div class="stat-delta delta-up">↑ K2.1k vs last month</div>
+          </div>
+        </div>
+        <!-- Charts Row -->
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:20px">
+          <div class="card fade-up" style="animation-delay:0.2s">
+            <div class="card-header">
+              <div><div class="card-title">Revenue Overview</div><div class="card-subtitle">Monthly revenue vs target 2025/26</div></div>
+              <span class="badge badge-teal">On Track</span>
+            </div>
+            <div style="padding:14px 16px 8px"><div class="chart-box"><canvas id="revenueChart"></canvas></div></div>
+          </div>
+          <div class="card fade-up" style="animation-delay:0.25s">
+            <div class="card-header"><div class="card-title">By Specialty</div><div class="card-subtitle">Patients this month</div></div>
+            <div style="padding:14px 16px 8px"><div class="chart-box"><canvas id="specialtyChart"></canvas></div></div>
+          </div>
+        </div>
+        <!-- Bottom Row -->
+        <div style="display:grid;grid-template-columns:3fr 2fr;gap:14px">
+          <div class="card fade-up" style="animation-delay:0.3s">
+            <div class="card-header">
+              <div class="card-title">Recent Patients</div>
+              <button class="btn btn-ghost btn-sm" onclick="navigate('patients')">View all →</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Patient</th><th>ID</th><th>Admitted</th><th>Doctor</th><th>Status</th></tr></thead>
+                <tbody id="dash-patients-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card fade-up" style="animation-delay:0.35s">
+            <div class="card-header">
+              <div class="card-title">Today's Schedule</div>
+              <button class="btn btn-ghost btn-sm" onclick="navigate('appointments')">View all →</button>
+            </div>
+            <div id="dash-schedule"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ PATIENTS ═══ -->
+      <div class="page" id="page-patients">
+        <div class="flex items-center justify-between" style="margin-bottom:14px">
+          <div class="flex gap-2" id="patient-filters"></div>
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input class="search-input" placeholder="Search patients…" oninput="filterPatients(this.value)"/>
+          </div>
+        </div>
+        <div class="flex gap-3" style="margin-bottom:16px" id="patient-chips"></div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Patient</th><th>ID</th><th>Age</th><th>Gender</th><th>Contact</th><th>Blood</th><th>Doctor</th><th>Diagnosis</th><th>Status</th><th></th></tr></thead>
+              <tbody id="patients-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ APPOINTMENTS ═══ -->
+      <div class="page" id="page-appointments">
+        <div class="flex items-center justify-between" style="margin-bottom:16px">
+          <div class="flex gap-2" id="appt-filters"></div>
+          <div id="appt-count" style="font-size:13px;color:var(--text-muted)"></div>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Patient</th><th>Date</th><th>Time</th><th>Doctor</th><th>Specialty</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="appts-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ DOCTORS ═══ -->
+      <div class="page" id="page-doctors">
+        <div id="doctors-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px"></div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Staff Directory</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Doctor</th><th>Specialty</th><th>Qualifications</th><th>Email</th><th>Availability</th><th>Today</th><th>Status</th></tr></thead>
+              <tbody id="doctors-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ WARDS ═══ -->
+      <div class="page" id="page-wards">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px" id="ward-stats"></div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px" id="wards-grid"></div>
+      </div>
+
+      <!-- ═══ RECORDS ═══ -->
+      <div class="page" id="page-records">
+        <div class="records-layout">
+          <div class="card" style="overflow-y:auto">
+            <div class="card-header" style="position:sticky;top:0;background:var(--surface);z-index:1"><div class="card-title">Patients</div></div>
+            <div id="records-patient-list"></div>
+          </div>
+          <div id="records-detail" style="overflow-y:auto"></div>
+        </div>
+      </div>
+
+      <!-- ═══ BILLING ═══ -->
+      <div class="page" id="page-billing">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px" id="billing-stats"></div>
+        <div style="display:grid;grid-template-columns:1fr 360px;gap:14px">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Invoices</div>
+              <div class="flex gap-2" id="billing-filters"></div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Invoice</th><th>Patient</th><th>Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+                <tbody id="billing-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="invoice-detail" class="card" style="display:flex;flex-direction:column"></div>
+        </div>
+      </div>
+
+    </div><!-- end #content -->
+  </div><!-- end #main -->
+</div><!-- end #app -->
+
+<!-- MODAL CONTAINER -->
+<div id="modal-container"></div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+const PATIENTS = [
+  {id:'P-00248',name:'Amara Kamau',age:34,gender:'Female',dob:'1990-03-12',blood:'B+',phone:'+260 77 123 4567',doctor:'Dr. Faith Moyo',ward:'Ward A',diagnosis:'Hypertension',status:'Active',admitted:'2026-03-27',allergies:'Penicillin',avatar:'AK',color:'#2563eb'},
+  {id:'P-00247',name:'Lila Mwansa',age:58,gender:'Female',dob:'1966-08-21',blood:'A+',phone:'+260 96 234 5678',doctor:'Dr. Kelvin Chirwa',ward:'Ward B',diagnosis:'Migraine Disorder',status:'Admitted',admitted:'2026-03-26',allergies:'None',avatar:'LM',color:'#7c3aed'},
+  {id:'P-00246',name:'James Nkosi',age:42,gender:'Male',dob:'1983-11-05',blood:'O-',phone:'+260 95 345 6789',doctor:'Dr. Ruth Banda',ward:'Ward C',diagnosis:'Fractured Femur',status:'Scheduled',admitted:'2026-03-25',allergies:'Sulfa drugs',avatar:'JN',color:'#059669'},
+  {id:'P-00245',name:'Fatima Osei',age:29,gender:'Female',dob:'1997-01-18',blood:'AB+',phone:'+260 97 456 7890',doctor:'Dr. Faith Moyo',ward:'Ward A',diagnosis:'Type 2 Diabetes',status:'Active',admitted:'2026-03-24',allergies:'Aspirin',avatar:'FO',color:'#dc2626'},
+  {id:'P-00244',name:'Bongani Thabo',age:67,gender:'Male',dob:'1959-06-30',blood:'O+',phone:'+260 76 567 8901',doctor:'Dr. Kelvin Chirwa',ward:'Ward B',diagnosis:'Stroke Recovery',status:'Discharged',admitted:'2026-03-23',allergies:'Ibuprofen',avatar:'BT',color:'#d97706'},
+  {id:'P-00243',name:'Kezia Dlamini',age:51,gender:'Female',dob:'1974-09-14',blood:'A-',phone:'+260 78 678 9012',doctor:'Dr. Ruth Banda',ward:'Ward C',diagnosis:'Knee Arthritis',status:'Scheduled',admitted:'2026-03-22',allergies:'None',avatar:'KD',color:'#0891b2'},
+  {id:'P-00242',name:'Samuel Phiri',age:38,gender:'Male',dob:'1987-04-22',blood:'B-',phone:'+260 79 789 0123',doctor:'Dr. Peter Zulu',ward:'Ward D',diagnosis:'Pneumonia',status:'Admitted',admitted:'2026-03-21',allergies:'Codeine',avatar:'SP',color:'#0f766e'},
+  {id:'P-00241',name:'Naledi Dube',age:23,gender:'Female',dob:'2002-12-03',blood:'AB-',phone:'+260 77 890 1234',doctor:'Dr. Grace Ngoma',ward:'Ward A',diagnosis:'Anaemia',status:'Active',admitted:'2026-03-20',allergies:'Latex',avatar:'ND',color:'#be185d'},
+  {id:'P-00240',name:'Chisomo Banda',age:45,gender:'Male',dob:'1980-07-09',blood:'A+',phone:'+260 96 901 2345',doctor:'Dr. Faith Moyo',ward:'Ward A',diagnosis:'Cardiac Arrhythmia',status:'Admitted',admitted:'2026-03-19',allergies:'None',avatar:'CB',color:'#1d4ed8'},
+  {id:'P-00239',name:'Thandiwe Moyo',age:60,gender:'Female',dob:'1965-02-17',blood:'O+',phone:'+260 95 012 3456',doctor:'Dr. Peter Zulu',ward:'Ward D',diagnosis:'COPD',status:'Discharged',admitted:'2026-03-18',allergies:'Aspirin',avatar:'TM',color:'#047857'},
+];
+
+const DOCTORS = [
+  {id:'D-001',name:'Dr. Faith Moyo',specialty:'Cardiology',patients:8,days:'Mon – Fri',status:'Available',avatar:'FM',color:'#2563eb',qualifications:'MBChB, PhD Cardiology',email:'f.moyo@medicore.zw',phone:'+260 77 100 0001',bio:'Over 15 years experience in cardiac care and interventional cardiology.'},
+  {id:'D-002',name:'Dr. Kelvin Chirwa',specialty:'Neurology',patients:6,days:'Tue – Sat',status:'In Surgery',avatar:'KC',color:'#7c3aed',qualifications:'MBChB, FRCP Neurology',email:'k.chirwa@medicore.zw',phone:'+260 96 100 0002',bio:'Specialist in stroke management, epilepsy and neurodegenerative disorders.'},
+  {id:'D-003',name:'Dr. Ruth Banda',specialty:'Orthopaedics',patients:5,days:'Mon – Thu',status:'Available',avatar:'RB',color:'#059669',qualifications:'MBChB, FRCS Orthopaedics',email:'r.banda@medicore.zw',phone:'+260 95 100 0003',bio:'Expert in joint replacement, fractures, and sports medicine.'},
+  {id:'D-004',name:'Dr. Peter Zulu',specialty:'Paediatrics',patients:10,days:'Mon – Fri',status:'Available',avatar:'PZ',color:'#dc2626',qualifications:'MBChB, MRCPCH',email:'p.zulu@medicore.zw',phone:'+260 97 100 0004',bio:'Dedicated to newborn care, childhood development and infectious diseases.'},
+  {id:'D-005',name:'Dr. Grace Ngoma',specialty:'General Medicine',patients:9,days:'Wed – Sun',status:'Off Duty',avatar:'GN',color:'#0891b2',qualifications:'MBChB, MRCP',email:'g.ngoma@medicore.zw',phone:'+260 78 100 0005',bio:'Broad clinical expertise with focus on preventive care and chronic disease management.'},
+  {id:'D-006',name:'Dr. Isaiah Tembo',specialty:'Oncology',patients:4,days:'Mon – Fri',status:'Available',avatar:'IT',color:'#be185d',qualifications:'MBChB, ESMO Oncology',email:'i.tembo@medicore.zw',phone:'+260 79 100 0006',bio:'Cancer specialist with expertise in chemotherapy protocols and palliative care.'},
+];
+
+let APPOINTMENTS = [
+  {id:'A-0034',patient:'Amara Kamau',patientId:'P-00248',doctor:'Dr. Faith Moyo',specialty:'Cardiology',reason:'Follow-up ECG',time:'08:00',date:'2026-03-28',status:'Confirmed',avatar:'AK',color:'#2563eb'},
+  {id:'A-0033',patient:'Lila Mwansa',patientId:'P-00247',doctor:'Dr. Kelvin Chirwa',specialty:'Neurology',reason:'MRI Review',time:'09:30',date:'2026-03-28',status:'Confirmed',avatar:'LM',color:'#7c3aed'},
+  {id:'A-0032',patient:'James Nkosi',patientId:'P-00246',doctor:'Dr. Ruth Banda',specialty:'Orthopaedics',reason:'X-Ray Consult',time:'10:45',date:'2026-03-28',status:'Pending',avatar:'JN',color:'#059669'},
+  {id:'A-0031',patient:'Fatima Osei',patientId:'P-00245',doctor:'Dr. Faith Moyo',specialty:'General Medicine',reason:'Annual Check-up',time:'13:00',date:'2026-03-28',status:'Confirmed',avatar:'FO',color:'#dc2626'},
+  {id:'A-0030',patient:'Bongani Thabo',patientId:'P-00244',doctor:'Dr. Kelvin Chirwa',specialty:'Neurology',reason:'Discharge Review',time:'15:15',date:'2026-03-28',status:'Cancelled',avatar:'BT',color:'#d97706'},
+  {id:'A-0029',patient:'Kezia Dlamini',patientId:'P-00243',doctor:'Dr. Ruth Banda',specialty:'Orthopaedics',reason:'Pre-op Assessment',time:'08:30',date:'2026-03-29',status:'Confirmed',avatar:'KD',color:'#0891b2'},
+  {id:'A-0028',patient:'Samuel Phiri',patientId:'P-00242',doctor:'Dr. Peter Zulu',specialty:'Paediatrics',reason:'Lung Function Test',time:'11:00',date:'2026-03-29',status:'Pending',avatar:'SP',color:'#0f766e'},
+];
+
+const WARDS = [
+  {id:'W-A',name:'Ward A',specialty:'Cardiology',total:12,beds:['O','O','O','O','A','A','O','O','A','O','R','A'],color:'#2563eb'},
+  {id:'W-B',name:'Ward B',specialty:'Neurology',total:10,beds:['O','A','O','A','O','A','A','O','A','A'],color:'#7c3aed'},
+  {id:'W-C',name:'Ward C',specialty:'Paediatrics',total:8,beds:['O','O','O','O','A','O','O','O'],color:'#059669'},
+  {id:'W-D',name:'Ward D',specialty:'General Medicine',total:15,beds:['O','O','A','O','O','A','A','O','R','O','A','O','O','R','A'],color:'#d97706'},
+];
+
+let INVOICES = [
+  {id:'INV-0052',patient:'Amara Kamau',patientId:'P-00248',date:'2026-03-27',amount:320,status:'Paid',avatar:'AK',color:'#2563eb',items:[{desc:'Consultation Fee',amount:120},{desc:'ECG Test',amount:80},{desc:'Medication (Amlodipine)',amount:120}]},
+  {id:'INV-0051',patient:'Lila Mwansa',patientId:'P-00247',date:'2026-03-26',amount:850,status:'Pending',avatar:'LM',color:'#7c3aed',items:[{desc:'Consultation Fee',amount:150},{desc:'MRI Scan',amount:450},{desc:'Medication',amount:95},{desc:'Nursing Care (2 days)',amount:155}]},
+  {id:'INV-0050',patient:'James Nkosi',patientId:'P-00246',date:'2026-03-25',amount:1240,status:'Pending',avatar:'JN',color:'#059669',items:[{desc:'Consultation Fee',amount:150},{desc:'X-Ray (2 views)',amount:240},{desc:'Surgical Theatre',amount:600},{desc:'Post-op Medication',amount:250}]},
+  {id:'INV-0049',patient:'Fatima Osei',patientId:'P-00245',date:'2026-03-24',amount:180,status:'Paid',avatar:'FO',color:'#dc2626',items:[{desc:'Consultation Fee',amount:120},{desc:'Blood Panel',amount:60}]},
+  {id:'INV-0048',patient:'Bongani Thabo',patientId:'P-00244',date:'2026-03-23',amount:2100,status:'Overdue',avatar:'BT',color:'#d97706',items:[{desc:'Consultation Fee',amount:150},{desc:'MRI Brain Scan',amount:600},{desc:'ICU Stay (3 days)',amount:1050},{desc:'Medication & Infusions',amount:300}]},
+  {id:'INV-0047',patient:'Kezia Dlamini',patientId:'P-00243',date:'2026-03-22',amount:440,status:'Paid',avatar:'KD',color:'#0891b2',items:[{desc:'Consultation Fee',amount:120},{desc:'Joint X-Ray',amount:180},{desc:'Physiotherapy (2 sessions)',amount:140}]},
+];
+
+const RECORDS = {
+  'P-00248':{visits:[
+    {date:'2026-03-27',doctor:'Dr. Faith Moyo',diagnosis:'Hypertension Stage 2',notes:'Patient presents with elevated BP 160/95. ECG normal sinus rhythm. Advised DASH diet, reduce sodium intake. Prescribed Amlodipine 5mg daily. Follow-up in 2 weeks.',prescription:['Amlodipine 5mg — once daily','Enalapril 10mg — twice daily'],tests:['ECG — Normal','Blood Pressure Monitoring — Elevated']},
+    {date:'2026-02-14',doctor:'Dr. Faith Moyo',diagnosis:'Hypertension Stage 1',notes:'First visit. BP 148/90. Initiated lifestyle modifications. No medications at this stage.',prescription:[],tests:['Full Blood Count — Normal','Lipid Panel — Elevated']},
+  ]},
+  'P-00247':{visits:[
+    {date:'2026-03-26',doctor:'Dr. Kelvin Chirwa',diagnosis:'Chronic Migraine Disorder',notes:'Patient reports 3–4 migraines/month lasting 12–24hrs. MRI Brain: no structural lesions. Prescribed preventive therapy. Advised migraine diary.',prescription:['Propranolol 40mg — twice daily','Sumatriptan 50mg — as needed'],tests:['MRI Brain — Normal','Visual Field Test — Normal']},
+  ]},
+  'P-00246':{visits:[
+    {date:'2026-03-25',doctor:'Dr. Ruth Banda',diagnosis:'Fractured Femur (Right)',notes:'Trauma admission following road traffic accident. X-ray confirms displaced mid-shaft fracture right femur. Patient stable. Scheduled for ORIF surgery tomorrow AM.',prescription:['Morphine 10mg IV — PRN','Enoxaparin 40mg — once daily'],tests:['X-Ray Right Femur — Displaced fracture','CT Angiogram — Normal']},
+  ]},
+};
+
+const REVENUE_DATA = [
+  {month:'Oct',revenue:12400,target:14000},{month:'Nov',revenue:15800,target:14000},
+  {month:'Dec',revenue:13200,target:14000},{month:'Jan',revenue:16400,target:16000},
+  {month:'Feb',revenue:14900,target:16000},{month:'Mar',revenue:18400,target:16000},
+];
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let currentPage = 'dashboard';
+let patientFilter = 'All';
+let apptFilter = 'All';
+let billingFilter = 'All';
+let selectedInvoice = INVOICES[1];
+let selectedRecord = PATIENTS[0];
+let selectedRecordVisit = 0;
+let patientsData = [...PATIENTS];
+let patientIdCounter = 249;
+let apptIdCounter = 35;
+let invoiceIdCounter = 53;
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+const PAGE_META = {
+  dashboard:    {title:'Dashboard Overview',       sub:'Welcome back — Saturday 28 March 2026',          action:''},
+  patients:     {title:'Patient Management',       sub:'Register and manage all hospital patients',       action:'+ Register Patient'},
+  appointments: {title:'Appointments',             sub:'Schedule and track all consultations',             action:'+ Book Appointment'},
+  doctors:      {title:'Doctors & Staff',          sub:'Medical staff directory and schedules',            action:'+ Add Doctor'},
+  wards:        {title:'Wards & Bed Management',   sub:'Real-time ward occupancy and bed assignments',     action:''},
+  records:      {title:'Medical Records',          sub:'Patient visit history and clinical notes',         action:''},
+  billing:      {title:'Billing & Invoicing',      sub:'Invoice management and payment tracking',          action:'+ New Invoice'},
+};
+
+function navigate(page) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById(`page-${page}`);
+  el.classList.add('active');
+  currentPage = page;
+  const m = PAGE_META[page];
+  document.getElementById('topbar-title').textContent = m.title;
+  document.getElementById('topbar-sub').textContent = m.sub;
+  const ab = document.getElementById('action-btn');
+  if (m.action) { ab.textContent = m.action; ab.style.display = ''; }
+  else { ab.style.display = 'none'; }
+  renderPage(page);
+}
+
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => navigate(el.dataset.page));
+});
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function av(initials, color, size=34, fs=12) {
+  return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${fs}px;background:${color}22;color:${color};border:1.5px solid ${color}44">${initials}</div>`;
+}
+function badge(text, cls) {
+  return `<span class="badge badge-${cls}">${text}</span>`;
+}
+const STATUS_BADGE = {Active:'success',Admitted:'warning',Scheduled:'info',Discharged:'gray','In Surgery':'warning','Off Duty':'gray','On Leave':'danger',Confirmed:'success',Pending:'warning',Cancelled:'danger',Paid:'success',Overdue:'danger'};
+
+function toast(msg, type='success') {
+  const icons = {success:'✓',error:'✕',info:'ℹ'};
+  const colors = {success:'var(--success)',error:'var(--danger)',info:'var(--teal)'};
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<span style="color:${colors[type]};font-size:16px">${icons[type]}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function openModal(html) {
+  const c = document.getElementById('modal-container');
+  c.innerHTML = html;
+  c.querySelector('.modal-backdrop').addEventListener('click', e => { if (e.target===e.currentTarget) closeModal(); });
+}
+function closeModal() { document.getElementById('modal-container').innerHTML = ''; }
+
+function openActionModal() { navigate(currentPage); openModal(buildModal(currentPage)); }
+
+// ═══════════════════════════════════════════════════════
+// RENDER PAGES
+// ═══════════════════════════════════════════════════════
+function renderPage(page) {
+  const fn = {
+    dashboard: renderDashboard, patients: renderPatients, appointments: renderAppointments,
+    doctors: renderDoctors, wards: renderWards, records: renderRecords, billing: renderBilling,
+  };
+  if (fn[page]) fn[page]();
+}
+
+// ── DASHBOARD ──────────────────────────────────────────
+function renderDashboard() {
+  // Recent patients
+  const tbody = document.getElementById('dash-patients-tbody');
+  tbody.innerHTML = patientsData.slice(0,5).map(p => `
+    <tr>
+      <td><div class="flex items-center gap-2">${av(p.avatar,p.color)}<span style="font-weight:500">${p.name}</span></div></td>
+      <td style="color:var(--text-muted);font-size:12px">${p.id}</td>
+      <td style="color:var(--text-muted)">${p.admitted.slice(5).replace('-',' ')}</td>
+      <td style="color:var(--text-secondary);font-size:12.5px">${p.doctor}</td>
+      <td>${badge(p.status, STATUS_BADGE[p.status]||'gray')}</td>
+    </tr>`).join('');
+
+  // Schedule
+  const sched = document.getElementById('dash-schedule');
+  const today = APPOINTMENTS.filter(a => a.date==='2026-03-28');
+  sched.innerHTML = today.map(a => `
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:11px 18px;border-bottom:1px solid #f1f5f9">
+      <span style="font-size:11.5px;font-weight:600;color:var(--text-muted);min-width:44px;padding-top:2px">${a.time}</span>
+      <div class="appt-dot" style="background:${a.color}"></div>
+      <div style="flex:1">
+        <div style="font-weight:500;font-size:13.5px">${a.patient}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:1px">${a.doctor} · ${a.specialty}</div>
+      </div>
+      ${badge(a.status,STATUS_BADGE[a.status]||'gray')}
+    </div>`).join('');
+
+  renderCharts();
+}
+
+let chartsDrawn = false;
+function renderCharts() {
+  if (chartsDrawn) return;
+  chartsDrawn = true;
+
+  // Revenue Area Chart
+  const rCtx = document.getElementById('revenueChart').getContext('2d');
+  new Chart(rCtx, {
+    type:'line',
+    data:{
+      labels: REVENUE_DATA.map(d=>d.month),
+      datasets:[
+        {label:'Target',data:REVENUE_DATA.map(d=>d.target),borderColor:'#e2e8f0',borderWidth:1.5,borderDash:[4,3],fill:false,pointRadius:0,tension:0.3},
+        {label:'Revenue',data:REVENUE_DATA.map(d=>d.revenue),borderColor:'#00d4b8',borderWidth:2.5,fill:true,backgroundColor:(ctx)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,160);g.addColorStop(0,'rgba(0,212,184,0.15)');g.addColorStop(1,'rgba(0,212,184,0)');return g},pointBackgroundColor:'#00d4b8',pointRadius:4,pointHoverRadius:6,tension:0.4},
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`$${c.raw.toLocaleString()}`}}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#94a3b8'}},y:{grid:{color:'#f1f5f9'},ticks:{font:{size:11},color:'#94a3b8',callback:v=>`$${(v/1000).toFixed(0)}k`}}}}
+  });
+
+  // Specialty Horizontal Bar
+  const sCtx = document.getElementById('specialtyChart').getContext('2d');
+  new Chart(sCtx, {
+    type:'bar',
+    data:{
+      labels:['Cardiology','Neurology','Orthopaedics','Paediatrics','General'],
+      datasets:[{data:[68,42,38,51,49],backgroundColor:['#2563eb','#7c3aed','#059669','#dc2626','#d97706'],borderRadius:4,borderSkipped:false}]
+    },
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} patients`}}},scales:{x:{grid:{color:'#f1f5f9'},ticks:{font:{size:10},color:'#94a3b8'}},y:{grid:{display:false},ticks:{font:{size:11},color:'#94a3b8'}}}}
+  });
+}
+
+// ── PATIENTS ───────────────────────────────────────────
+function renderPatients(search='') {
+  // Filter chips
+  const f = document.getElementById('patient-filters');
+  f.innerHTML = ['All','Active','Admitted','Scheduled','Discharged'].map(s =>
+    `<button class="btn btn-sm ${patientFilter===s?'btn-primary':'btn-ghost'}" onclick="setPatientFilter('${s}')">${s}</button>`
+  ).join('');
+
+  // Summary chips
+  const chips = document.getElementById('patient-chips');
+  const counts = {Total:patientsData.length,Active:patientsData.filter(p=>p.status==='Active').length,Admitted:patientsData.filter(p=>p.status==='Admitted').length,Scheduled:patientsData.filter(p=>p.status==='Scheduled').length};
+  const chipColors = {Total:'#2563eb',Active:'#22c55e',Admitted:'#f59e0b',Scheduled:'#3b82f6'};
+  chips.innerHTML = Object.entries(counts).map(([l,v])=>`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:9px 16px;display:flex;gap:7px;align-items:center;box-shadow:var(--shadow-sm)">
+      <span style="font-size:18px;font-weight:800;font-family:var(--font-display);color:${chipColors[l]}">${v}</span>
+      <span style="font-size:12px;color:var(--text-muted)">${l}</span>
+    </div>`).join('');
+
+  // Table
+  let data = patientsData;
+  if (patientFilter!=='All') data = data.filter(p=>p.status===patientFilter);
+  if (search) data = data.filter(p=>p.name.toLowerCase().includes(search)||p.id.toLowerCase().includes(search));
+
+  const tbody = document.getElementById('patients-tbody');
+  if (!data.length) { tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No patients found</div><div class="empty-desc">Try adjusting your search or filter</div></div></td></tr>`; return; }
+  tbody.innerHTML = data.map(p=>`
+    <tr onclick="showPatientDetail('${p.id}')">
+      <td><div class="flex items-center gap-2">${av(p.avatar,p.color)}<span style="font-weight:500">${p.name}</span></div></td>
+      <td style="color:var(--text-muted);font-size:12px">${p.id}</td>
+      <td>${p.age}</td>
+      <td style="color:var(--text-secondary)">${p.gender}</td>
+      <td style="font-size:12.5px;color:var(--text-secondary)">${p.phone}</td>
+      <td>${badge(p.blood,'gray')}</td>
+      <td style="font-size:12.5px">${p.doctor}</td>
+      <td style="font-size:12.5px;color:var(--text-secondary)">${p.diagnosis}</td>
+      <td>${badge(p.status,STATUS_BADGE[p.status]||'gray')}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showPatientDetail('${p.id}')">View</button></td>
+    </tr>`).join('');
+}
+
+function setPatientFilter(f) { patientFilter=f; renderPatients(); }
+
+function filterPatients(val) { renderPatients(val.toLowerCase()); }
+
+function showPatientDetail(id) {
+  const p = patientsData.find(x=>x.id===id); if(!p) return;
+  openModal(`
+    <div class="modal-backdrop">
+      <div class="modal" style="max-width:600px">
+        <div class="modal-header">
+          <h2>Patient Profile</h2>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <div style="display:flex;gap:18px;margin-bottom:20px;align-items:flex-start">
+            ${av(p.avatar,p.color,54,16)}
+            <div>
+              <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700">${p.name}</h3>
+              <p style="color:var(--text-muted);font-size:13px;margin-top:2px">${p.id} · ${p.gender} · ${p.age} yrs · Blood ${p.blood}</p>
+              <span style="margin-top:8px;display:inline-flex" class="badge badge-${STATUS_BADGE[p.status]||'gray'}">${p.status}</span>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            ${[['Phone',p.phone],['Date of Birth',p.dob],['Assigned Doctor',p.doctor],['Ward',p.ward],['Diagnosis',p.diagnosis],['Allergies',p.allergies],['Admitted',p.admitted],['Next of Kin','—']].map(([l,v])=>`
+              <div style="background:var(--surface-2);border-radius:var(--r-md);padding:12px 14px">
+                <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:4px">${l}</div>
+                <div style="font-size:13.5px;font-weight:500">${v}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="toast('Record exported','info');closeModal()">Print Record</button>
+          <button class="btn btn-primary" onclick="closeModal()">Close</button>
+        </div>
+      </div>
+    </div>`);
+}
+
+// ── APPOINTMENTS ───────────────────────────────────────
+function renderAppointments() {
+  const f = document.getElementById('appt-filters');
+  f.innerHTML = ['All','Confirmed','Pending','Cancelled'].map(s=>
+    `<button class="btn btn-sm ${apptFilter===s?'btn-primary':'btn-ghost'}" onclick="setApptFilter('${s}')">${s}</button>`
+  ).join('');
+  const data = apptFilter==='All'?APPOINTMENTS:APPOINTMENTS.filter(a=>a.status===apptFilter);
+  document.getElementById('appt-count').textContent = `${data.length} appointment${data.length!==1?'s':''}`;
+  const tbody = document.getElementById('appts-tbody');
+  tbody.innerHTML = data.map(a=>`
+    <tr>
+      <td style="color:var(--text-muted);font-size:12px">${a.id}</td>
+      <td><div class="flex items-center gap-2">${av(a.avatar,a.color,28,10)}<span style="font-weight:500">${a.patient}</span></div></td>
+      <td style="font-size:13px;color:var(--text-secondary)">${a.date}</td>
+      <td style="font-weight:600">${a.time}</td>
+      <td style="font-size:13px">${a.doctor}</td>
+      <td style="font-size:12.5px;color:var(--text-secondary)">${a.specialty}</td>
+      <td style="font-size:12.5px;color:var(--text-secondary)">${a.reason}</td>
+      <td>${badge(a.status,STATUS_BADGE[a.status]||'gray')}</td>
+      <td>
+        <div class="flex gap-2">
+          ${a.status!=='Confirmed'&&a.status!=='Cancelled'?`<button class="btn btn-ghost btn-sm" onclick="updateAppt('${a.id}','Confirmed')">✓ Confirm</button>`:''}
+          ${a.status!=='Cancelled'?`<button class="btn btn-danger btn-sm" onclick="updateAppt('${a.id}','Cancelled')">Cancel</button>`:''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function setApptFilter(f) { apptFilter=f; renderAppointments(); }
+
+function updateAppt(id, status) {
+  const a = APPOINTMENTS.find(x=>x.id===id); if(!a) return;
+  a.status = status;
+  renderAppointments();
+  toast(`Appointment ${status.toLowerCase()}`, status==='Cancelled'?'error':'success');
+}
+
+// ── DOCTORS ────────────────────────────────────────────
+function renderDoctors() {
+  // Cards
+  document.getElementById('doctors-grid').innerHTML = DOCTORS.map(d=>`
+    <div class="card doctor-card" onclick="showDoctorDetail('${d.id}')">
+      <div style="padding:18px 20px">
+        <div class="flex items-center gap-3" style="margin-bottom:12px">
+          ${av(d.avatar,d.color,44,14)}
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:14px;font-family:var(--font-display)">${d.name}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${d.specialty}</div>
+          </div>
+          ${badge(d.status,STATUS_BADGE[d.status]||'gray')}
+        </div>
+        <p style="font-size:12.5px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px">${d.bio}</p>
+        <hr class="divider" style="margin:10px 0"/>
+        <div class="flex justify-between" style="font-size:12px;color:var(--text-muted)">
+          <span>📅 ${d.days}</span>
+          <span>👤 ${d.patients} today</span>
+        </div>
+      </div>
+    </div>`).join('');
+
+  // Table
+  document.getElementById('doctors-tbody').innerHTML = DOCTORS.map(d=>`
+    <tr onclick="showDoctorDetail('${d.id}')">
+      <td><div class="flex items-center gap-2">${av(d.avatar,d.color)}<span style="font-weight:500">${d.name}</span></div></td>
+      <td style="font-size:13px">${d.specialty}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${d.qualifications}</td>
+      <td style="font-size:12.5px;color:var(--info)">${d.email}</td>
+      <td style="font-size:13px">${d.days}</td>
+      <td><span style="font-weight:600">${d.patients}</span> <span style="color:var(--text-muted);font-size:12px">patients</span></td>
+      <td>${badge(d.status,STATUS_BADGE[d.status]||'gray')}</td>
+    </tr>`).join('');
+}
+
+function showDoctorDetail(id) {
+  const d = DOCTORS.find(x=>x.id===id); if(!d) return;
+  openModal(`
+    <div class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-header"><h2>Doctor Profile</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+        <div class="modal-body">
+          <div class="flex gap-4 items-center" style="margin-bottom:18px">
+            ${av(d.avatar,d.color,54,16)}
+            <div>
+              <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700">${d.name}</h3>
+              <p style="color:var(--text-muted);font-size:13px;margin-top:2px">${d.specialty} · ${d.qualifications}</p>
+              <span class="badge badge-${STATUS_BADGE[d.status]||'gray'}" style="margin-top:8px;display:inline-flex">${d.status}</span>
+            </div>
+          </div>
+          <p style="color:var(--text-secondary);font-size:13.5px;line-height:1.7;margin-bottom:18px;background:var(--surface-2);padding:14px;border-radius:var(--r-md);border-left:3px solid var(--teal)">${d.bio}</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            ${[['Email',d.email],['Phone',d.phone],['Availability',d.days],['Patients Today',d.patients],['Department',d.specialty],['Staff ID',d.id]].map(([l,v])=>`
+              <div style="background:var(--surface-2);border-radius:var(--r-md);padding:12px 14px">
+                <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:4px">${l}</div>
+                <div style="font-size:13.5px;font-weight:500">${v}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-primary" onclick="closeModal()">Close</button></div>
+      </div>
+    </div>`);
+}
+
+// ── WARDS ──────────────────────────────────────────────
+function renderWards() {
+  const total = WARDS.reduce((s,w)=>s+w.total,0);
+  const occupied = WARDS.reduce((s,w)=>s+w.beds.filter(b=>b==='O').length,0);
+  const available = WARDS.reduce((s,w)=>s+w.beds.filter(b=>b==='A').length,0);
+  const reserved = WARDS.reduce((s,w)=>s+w.beds.filter(b=>b==='R').length,0);
+
+  document.getElementById('ward-stats').innerHTML = [
+    {label:'Total Beds',v:total,icon:'🛏️',bg:'var(--info-bg)',c:'var(--info)'},
+    {label:'Occupied',v:occupied,icon:'🔴',bg:'var(--danger-bg)',c:'var(--danger)'},
+    {label:'Available',v:available,icon:'🟢',bg:'var(--success-bg)',c:'var(--success)'},
+    {label:'Reserved',v:reserved,icon:'🟡',bg:'var(--warning-bg)',c:'var(--warning)'},
+  ].map(s=>`
+    <div class="stat-card">
+      <div class="stat-icon" style="background:${s.bg}">${s.icon}</div>
+      <div class="stat-value" style="color:${s.c}">${s.v}</div>
+      <div class="stat-label">${s.label}</div>
+      <div style="margin-top:10px">
+        <div class="progress"><div class="progress-fill" style="width:${Math.round(s.v/total*100)}%;background:${s.c}"></div></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${Math.round(s.v/total*100)}% of total</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('wards-grid').innerHTML = WARDS.map(w=>{
+    const occ = w.beds.filter(b=>b==='O').length;
+    const pct = Math.round(occ/w.total*100);
+    const beds = w.beds.map((b,i)=>`<div class="bed bed-${b}" onclick="toast('Bed ${w.name.split(' ')[1]}${i+1}: ${b==='O'?'Occupied':b==='A'?'Available':'Reserved'}','info')" title="${b==='O'?'Occupied':b==='A'?'Available':'Reserved'}">${w.name.split(' ')[1]}${i+1}</div>`).join('');
+    return `
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">${w.name}</div><div class="card-subtitle">${w.specialty} · ${w.total} beds</div></div>
+          <div class="flex items-center gap-2">
+            <span style="font-family:var(--font-display);font-weight:800;font-size:22px;color:${w.color}">${pct}%</span>
+            <span style="font-size:12px;color:var(--text-muted)">occupied</span>
+          </div>
+        </div>
+        <div style="padding:16px 20px">
+          <div class="progress" style="margin-bottom:14px"><div class="progress-fill" style="width:${pct}%;background:${w.color}"></div></div>
+          <div class="bed-grid">${beds}</div>
+          <div class="flex gap-4" style="margin-top:12px">
+            ${[['O','Occupied','#fee2e2','#991b1b'],['A','Available','#d1fae5','#065f46'],['R','Reserved','#fef3c7','#92400e']].map(([k,l,bg,c])=>`
+              <div class="flex items-center gap-2">
+                <div style="width:10px;height:10px;border-radius:2px;background:${bg};border:1px solid ${c}44;flex-shrink:0"></div>
+                <span style="font-size:11px;color:var(--text-muted)">${l} (${w.beds.filter(b=>b===k).length})</span>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── RECORDS ────────────────────────────────────────────
+function renderRecords() {
+  const list = document.getElementById('records-patient-list');
+  list.innerHTML = patientsData.map(p=>`
+    <div class="patient-list-item ${selectedRecord&&selectedRecord.id===p.id?'active':''}" onclick="selectRecord('${p.id}')">
+      ${av(p.avatar,p.color,30,10)}
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:500;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${p.id}</div>
+      </div>
+      ${selectedRecord&&selectedRecord.id===p.id?'<div style="width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0"></div>':''}
+    </div>`).join('');
+  renderRecordDetail();
+}
+
+function selectRecord(id) {
+  selectedRecord = patientsData.find(p=>p.id===id);
+  selectedRecordVisit = 0;
+  renderRecords();
+}
+
+function renderRecordDetail() {
+  const detail = document.getElementById('records-detail');
+  if (!selectedRecord) { detail.innerHTML=`<div class="card" style="display:flex;align-items:center;justify-content:center;height:100%"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Select a patient</div><div class="empty-desc">Click a patient to view records</div></div></div>`; return; }
+  const rec = RECORDS[selectedRecord.id];
+  if (!rec) {
+    detail.innerHTML=`<div class="card" style="display:flex;align-items:center;justify-content:center;height:100%"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No records found</div><div class="empty-desc">No visit history for this patient yet</div></div></div>`;
+    return;
+  }
+  const visit = rec.visits[selectedRecordVisit];
+  const p = selectedRecord;
+  const initials = p.name.split(' ').map(w=>w[0]).join('');
+  detail.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card">
+        <div style="padding:18px 22px;display:flex;align-items:center;gap:14px">
+          ${av(initials,p.color,50,15)}
+          <div style="flex:1">
+            <h2 style="font-family:var(--font-display);font-size:17px;font-weight:700">${p.name}</h2>
+            <p style="color:var(--text-muted);font-size:13px;margin-top:2px">${p.id}</p>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-ghost btn-sm" onclick="toast('Record exported as PDF','info')">Export PDF</button>
+            <button class="btn btn-primary btn-sm" onclick="toast('New visit note added','success')">+ Add Visit Note</button>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        ${rec.visits.map((v,i)=>`<button class="btn btn-sm ${selectedRecordVisit===i?'btn-primary':'btn-ghost'}" onclick="selectVisit(${i})">${v.date}</button>`).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="card" style="grid-column:1/-1">
+          <div class="card-header">
+            <div><div class="card-title">Clinical Notes</div><div class="card-subtitle">${visit.date} · ${visit.doctor}</div></div>
+            <span class="badge badge-info">${visit.diagnosis}</span>
+          </div>
+          <div style="padding:18px 22px">
+            <p style="font-size:14px;line-height:1.8;color:var(--text-secondary);background:var(--surface-2);padding:16px 18px;border-radius:var(--r-md);border-left:3px solid var(--teal)">${visit.notes}</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">💊 Prescription</div></div>
+          <div style="padding:14px 20px">
+            ${!visit.prescription.length?'<p style="color:var(--text-muted);font-size:13px">No medications prescribed.</p>':visit.prescription.map((rx,i)=>`
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:${i<visit.prescription.length-1?'1px solid var(--border)':'none'}">
+                <div style="width:7px;height:7px;border-radius:50%;background:var(--teal);flex-shrink:0"></div>
+                <span style="font-size:13.5px">${rx}</span>
+              </div>`).join('')}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🔬 Tests & Results</div></div>
+          <div style="padding:14px 20px">
+            ${visit.tests.map((t,i)=>{const [name,result]=t.split(' — ');return`
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:${i<visit.tests.length-1?'1px solid var(--border)':'none'}">
+                <span style="font-size:13.5px">${name}</span>
+                ${result?badge(result,result==='Normal'?'success':'warning'):''}
+              </div>`;}).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function selectVisit(idx) {
+  selectedRecordVisit = idx;
+  renderRecordDetail();
+}
+
+// ── BILLING ────────────────────────────────────────────
+function renderBilling() {
+  const paid = INVOICES.filter(i=>i.status==='Paid').reduce((s,i)=>s+i.amount,0);
+  const pending = INVOICES.filter(i=>i.status==='Pending').reduce((s,i)=>s+i.amount,0);
+  const overdue = INVOICES.filter(i=>i.status==='Overdue').reduce((s,i)=>s+i.amount,0);
+  document.getElementById('billing-stats').innerHTML = [
+    {label:'Total Collected',v:`$${paid.toLocaleString()}`,icon:'✅',bg:'var(--success-bg)',c:'var(--success)'},
+    {label:'Pending Payments',v:`$${pending.toLocaleString()}`,icon:'⏳',bg:'var(--warning-bg)',c:'var(--warning)'},
+    {label:'Overdue Invoices',v:`$${overdue.toLocaleString()}`,icon:'🚨',bg:'var(--danger-bg)',c:'var(--danger)'},
+  ].map(s=>`
+    <div class="stat-card">
+      <div class="stat-icon" style="background:${s.bg}">${s.icon}</div>
+      <div class="stat-value" style="color:${s.c}">${s.v}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>`).join('');
+
+  const f = document.getElementById('billing-filters');
+  f.innerHTML = ['All','Paid','Pending','Overdue'].map(s=>`<button class="btn btn-sm ${billingFilter===s?'btn-primary':'btn-ghost'}" onclick="setBillingFilter('${s}')">${s}</button>`).join('');
+
+  const data = billingFilter==='All'?INVOICES:INVOICES.filter(i=>i.status===billingFilter);
+  document.getElementById('billing-tbody').innerHTML = data.map(inv=>`
+    <tr onclick="selectInvoice('${inv.id}')" style="background:${selectedInvoice&&selectedInvoice.id===inv.id?'var(--teal-dim)':''}">
+      <td style="color:var(--text-muted);font-size:12px;font-weight:500">${inv.id}</td>
+      <td><div class="flex items-center gap-2">${av(inv.avatar,inv.color,26,9)}<span style="font-weight:500">${inv.patient}</span></div></td>
+      <td style="font-size:13px;color:var(--text-secondary)">${inv.date}</td>
+      <td style="font-weight:700;font-family:var(--font-display)">$${inv.amount.toLocaleString()}</td>
+      <td>${badge(inv.status,STATUS_BADGE[inv.status]||'gray')}</td>
+      <td>${inv.status!=='Paid'?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();markPaid('${inv.id}')">Mark Paid</button>`:''}</td>
+    </tr>`).join('');
+
+  renderInvoiceDetail();
+}
+
+function setBillingFilter(f) { billingFilter=f; renderBilling(); }
+
+function selectInvoice(id) { selectedInvoice=INVOICES.find(i=>i.id===id); renderBilling(); }
+
+function markPaid(id) {
+  const inv = INVOICES.find(i=>i.id===id); if(!inv) return;
+  inv.status='Paid';
+  if (selectedInvoice&&selectedInvoice.id===id) selectedInvoice=inv;
+  renderBilling();
+  toast('Invoice marked as paid');
+}
+
+function renderInvoiceDetail() {
+  const el = document.getElementById('invoice-detail');
+  if (!selectedInvoice) { el.innerHTML=''; return; }
+  const inv = selectedInvoice;
+  el.innerHTML = `
+    <div class="card-header">
+      <div><div class="card-title">${inv.id}</div><div class="card-subtitle">${inv.patient} · ${inv.date}</div></div>
+      ${badge(inv.status,STATUS_BADGE[inv.status]||'gray')}
+    </div>
+    <div style="flex:1">
+      ${inv.items.map((item,i)=>`
+        <div class="inv-row" style="border-bottom:${i<inv.items.length-1?'1px solid #f1f5f9':'none'}">
+          <span style="color:var(--text-secondary)">${item.desc}</span>
+          <span style="font-weight:600">$${item.amount.toFixed(2)}</span>
+        </div>`).join('')}
+    </div>
+    <div class="inv-total">
+      <span style="font-family:var(--font-display);font-weight:700;font-size:15px">Total</span>
+      <span style="font-family:var(--font-display);font-weight:800;font-size:20px">$${inv.amount.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+    </div>
+    <div style="padding:14px 20px;display:flex;gap:10px;border-top:1px solid var(--border)">
+      ${inv.status!=='Paid'?`<button class="btn btn-primary" style="flex:1" onclick="markPaid('${inv.id}')">✓ Mark as Paid</button>`:`<div class="flex items-center gap-2" style="flex:1;color:var(--success);font-weight:600;font-size:13.5px"><span>✓</span> Payment Received</div>`}
+      <button class="btn btn-ghost" onclick="toast('Invoice exported as PDF','info')">📄 Export</button>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// MODALS (Action buttons)
+// ═══════════════════════════════════════════════════════
+function buildModal(page) {
+  if (page==='patients') return buildRegisterPatientModal();
+  if (page==='appointments') return buildBookApptModal();
+  if (page==='doctors') return buildAddDoctorModal();
+  if (page==='billing') return buildNewInvoiceModal();
+  return '';
+}
+
+function buildRegisterPatientModal() {
+  return `<div class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header"><h2>Register New Patient</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">First Name *</label><input class="form-input" id="p-fname" placeholder="Amara"/></div>
+          <div class="form-group"><label class="form-label">Last Name *</label><input class="form-input" id="p-lname" placeholder="Kamau"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Date of Birth *</label><input class="form-input" id="p-dob" type="date"/></div>
+          <div class="form-group"><label class="form-label">Gender</label><select class="form-select" id="p-gender"><option>Female</option><option>Male</option><option>Other</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Phone Number *</label><input class="form-input" id="p-phone" placeholder="+260 77 123 4567"/></div>
+          <div class="form-group"><label class="form-label">Blood Group</label><select class="form-select" id="p-blood"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Assign Doctor</label><select class="form-select" id="p-doctor"><option>Dr. Faith Moyo</option><option>Dr. Kelvin Chirwa</option><option>Dr. Ruth Banda</option><option>Dr. Peter Zulu</option><option>Dr. Grace Ngoma</option></select></div>
+          <div class="form-group"><label class="form-label">Next of Kin</label><input class="form-input" id="p-kin" placeholder="Name & relationship"/></div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group"><label class="form-label">Notes / Reason for Visit</label><textarea class="form-textarea" id="p-notes" placeholder="Initial notes or presenting complaint…"></textarea></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="registerPatient()">Register Patient</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function registerPatient() {
+  const fn = document.getElementById('p-fname').value.trim();
+  const ln = document.getElementById('p-lname').value.trim();
+  const dob = document.getElementById('p-dob').value;
+  const phone = document.getElementById('p-phone').value.trim();
+  if (!fn||!ln||!dob||!phone) { toast('Please fill in required fields','error'); return; }
+  const name = `${fn} ${ln}`;
+  const initials = (fn[0]+ln[0]).toUpperCase();
+  const colors = ['#2563eb','#7c3aed','#059669','#dc2626','#d97706','#0891b2','#0f766e','#be185d'];
+  const color = colors[patientsData.length % colors.length];
+  const newId = `P-00${patientIdCounter++}`;
+  const age = new Date().getFullYear()-new Date(dob).getFullYear();
+  patientsData.unshift({id:newId,name,age,gender:document.getElementById('p-gender').value,dob,blood:document.getElementById('p-blood').value,phone,doctor:document.getElementById('p-doctor').value,ward:'—',diagnosis:'Pending Assessment',status:'Scheduled',admitted:new Date().toISOString().slice(0,10),allergies:'—',avatar:initials,color});
+  closeModal();
+  toast(`Patient ${name} registered — ${newId}`);
+  renderPatients();
+}
+
+function buildBookApptModal() {
+  return `<div class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header"><h2>Book New Appointment</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div class="form-row full"><div class="form-group"><label class="form-label">Patient Name *</label><input class="form-input" id="a-patient" placeholder="Full patient name"/></div></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Doctor</label><select class="form-select" id="a-doctor"><option>Dr. Faith Moyo</option><option>Dr. Kelvin Chirwa</option><option>Dr. Ruth Banda</option><option>Dr. Peter Zulu</option><option>Dr. Grace Ngoma</option></select></div>
+          <div class="form-group"><label class="form-label">Specialty</label><select class="form-select" id="a-specialty"><option>Cardiology</option><option>Neurology</option><option>Orthopaedics</option><option>Paediatrics</option><option>General Medicine</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="a-date" type="date" value="2026-03-28"/></div>
+          <div class="form-group"><label class="form-label">Time Slot</label><select class="form-select" id="a-time">${['08:00','08:30','09:00','09:30','10:00','10:30','11:00','13:00','13:30','14:00','14:30','15:00','15:30'].map(t=>`<option>${t}</option>`).join('')}</select></div>
+        </div>
+        <div class="form-row full"><div class="form-group"><label class="form-label">Reason for Visit *</label><textarea class="form-textarea" id="a-reason" placeholder="Describe reason for appointment…"></textarea></div></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="bookAppointment()">Book Appointment</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function bookAppointment() {
+  const patient = document.getElementById('a-patient').value.trim();
+  const reason = document.getElementById('a-reason').value.trim();
+  if (!patient||!reason) { toast('Fill in patient name and reason','error'); return; }
+  const initials = patient.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  APPOINTMENTS.unshift({id:`A-00${apptIdCounter++}`,patient,patientId:'—',doctor:document.getElementById('a-doctor').value,specialty:document.getElementById('a-specialty').value,reason,time:document.getElementById('a-time').value,date:document.getElementById('a-date').value,status:'Pending',avatar:initials,color:'#2563eb'});
+  closeModal();
+  toast(`Appointment booked for ${patient}`);
+  renderAppointments();
+}
+
+function buildAddDoctorModal() {
+  return `<div class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header"><h2>Add New Doctor</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">First Name *</label><input class="form-input" id="d-fname" placeholder="Faith"/></div>
+          <div class="form-group"><label class="form-label">Last Name *</label><input class="form-input" id="d-lname" placeholder="Moyo"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Specialty</label><select class="form-select" id="d-spec"><option>Cardiology</option><option>Neurology</option><option>Orthopaedics</option><option>Paediatrics</option><option>General Medicine</option><option>Oncology</option></select></div>
+          <div class="form-group"><label class="form-label">Availability</label><select class="form-select" id="d-days"><option>Mon – Fri</option><option>Mon – Sat</option><option>Tue – Sat</option><option>Wed – Sun</option><option>Mon – Thu</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="d-email" type="email" placeholder="doctor@medicore.zw"/></div>
+          <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="d-phone" placeholder="+260 77 000 0000"/></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="addDoctor()">Add Doctor</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function addDoctor() {
+  const fn = document.getElementById('d-fname').value.trim();
+  const ln = document.getElementById('d-lname').value.trim();
+  if (!fn||!ln) { toast('Enter doctor name','error'); return; }
+  const name = `Dr. ${fn} ${ln}`;
+  const initials = (fn[0]+ln[0]).toUpperCase();
+  const colors=['#2563eb','#7c3aed','#059669','#dc2626','#0891b2'];
+  DOCTORS.push({id:`D-00${DOCTORS.length+1}`,name,specialty:document.getElementById('d-spec').value,patients:0,days:document.getElementById('d-days').value,status:'Available',avatar:initials,color:colors[DOCTORS.length%colors.length],qualifications:'MBChB',email:document.getElementById('d-email').value,phone:document.getElementById('d-phone').value,bio:'Newly registered staff member.'});
+  closeModal();
+  toast(`${name} added to staff directory`);
+  renderDoctors();
+}
+
+function buildNewInvoiceModal() {
+  return `<div class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header"><h2>Create New Invoice</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div class="form-row full"><div class="form-group"><label class="form-label">Patient Name *</label><input class="form-input" id="inv-patient" placeholder="Full patient name"/></div></div>
+        <label class="form-label" style="display:block;margin-bottom:8px">Line Items *</label>
+        <div id="inv-items">
+          <div class="flex gap-2" style="margin-bottom:8px"><input class="form-input" placeholder="Description" style="flex:1"/><input class="form-input" type="number" placeholder="Amount ($)" style="width:130px"/></div>
+          <div class="flex gap-2" style="margin-bottom:8px"><input class="form-input" placeholder="Description" style="flex:1"/><input class="form-input" type="number" placeholder="Amount ($)" style="width:130px"/></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="addInvItem()" style="margin-bottom:14px">+ Add Item</button>
+        <div style="background:var(--surface-2);border-radius:var(--r-md);padding:13px 16px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13.5px;color:var(--text-muted)">Estimated Total</span>
+          <span style="font-family:var(--font-display);font-weight:800;font-size:18px" id="inv-total-preview">$0.00</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="createInvoice()">Create Invoice</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function addInvItem() {
+  const c = document.getElementById('inv-items');
+  const row = document.createElement('div');
+  row.className = 'flex gap-2';
+  row.style.marginBottom = '8px';
+  row.innerHTML = `<input class="form-input" placeholder="Description" style="flex:1" oninput="updateInvTotal()"/><input class="form-input" type="number" placeholder="Amount ($)" style="width:130px" oninput="updateInvTotal()"/>`;
+  c.appendChild(row);
+}
+
+function updateInvTotal() {
+  const amts = [...document.querySelectorAll('#inv-items input[type="number"]')].map(i=>parseFloat(i.value)||0);
+  const total = amts.reduce((s,v)=>s+v,0);
+  const el = document.getElementById('inv-total-preview');
+  if (el) el.textContent = `$${total.toFixed(2)}`;
+}
+
+function createInvoice() {
+  const patient = document.getElementById('inv-patient').value.trim();
+  if (!patient) { toast('Enter patient name','error'); return; }
+  const rows = document.querySelectorAll('#inv-items .flex');
+  const items = [];
+  rows.forEach(row=>{
+    const [descEl,amtEl] = row.querySelectorAll('input');
+    const desc = descEl.value.trim(); const amount = parseFloat(amtEl.value)||0;
+    if (desc&&amount) items.push({desc,amount});
+  });
+  if (!items.length) { toast('Add at least one line item','error'); return; }
+  const total = items.reduce((s,i)=>s+i.amount,0);
+  const initials = patient.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const newInv = {id:`INV-00${invoiceIdCounter++}`,patient,patientId:'—',date:'2026-03-28',amount:total,status:'Pending',avatar:initials,color:'#2563eb',items};
+  INVOICES.unshift(newInv);
+  selectedInvoice = newInv;
+  closeModal();
+  toast(`Invoice ${newInv.id} created for ${patient}`);
+  renderBilling();
+}
+
+// ═══════════════════════════════════════════════════════
+// GLOBAL SEARCH
+// ═══════════════════════════════════════════════════════
+function handleSearch(val) {
+  if (currentPage==='patients') filterPatients(val);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+navigate('dashboard');
+</script>
+</body>
+</html>
